@@ -42,7 +42,7 @@ module RETS
       base_url.gsub!(urls[:login].path, "") if urls[:login].path
 
       http = RETS::HTTP.new(args)
-      http.request(:url => urls[:login], :check_response => true) do |response|
+      http.request(:url => urls[:login], :check_response => true, :read_timeout => args[:read_timeout]) do |response|
         rets_attr = Nokogiri::XML(response.body).xpath("//RETS")
         if rets_attr.empty?
           raise RETS::ResponseError, "Does not seem to be a RETS server."
