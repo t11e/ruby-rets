@@ -45,7 +45,8 @@ module RETS
       http.request(:url => urls[:login], :check_response => true, :read_timeout => args[:read_timeout]) do |response|
         rets_attr = Nokogiri::XML(response.body).xpath("//RETS")
         if rets_attr.empty?
-          raise RETS::ResponseError, "Does not seem to be a RETS server."
+          raise RETS::ResponseError.new(
+            "Invalid response, expected <RETS> element: #{response.body.inspect}", response.body)
         end
 
         rets_attr.first.content.split("\n").each do |row|

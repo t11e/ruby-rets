@@ -5,7 +5,11 @@ describe RETS::Client do
 
   it "raises a ResponseError for non-RETS responses" do
     mock_response('<html><body>Foo Bar</body></html')
-    lambda { RETS::Client.login(:url => "http://foobar.com/login/login.bar") }.should raise_error(RETS::ResponseError)
+    -> {
+      RETS::Client.login(:url => "http://foobar.com/login/login.bar")
+    }.should raise_error(RETS::ResponseError) { |e|
+      e.body.should eq '<html><body>Foo Bar</body></html'
+    }
   end
 
   it "raises an APIError if the ReplyCode is != 0 and != 20037" do

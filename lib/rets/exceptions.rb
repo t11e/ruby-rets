@@ -19,6 +19,11 @@ module RETS
   ##
   # Server responded with bad data.
   class ResponseError < StandardError
+    def initialize(message, body)
+      super(message)
+      @body = body
+    end
+    attr_reader :body
   end
 
   ##
