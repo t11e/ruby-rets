@@ -162,6 +162,7 @@ module RETS
     #
     # @param [Hash] args
     # @option args [URI] :url URI to request data from
+    # @option args [String, Optional] :method HTTP method for the request; supports GET (default) and POST
     # @option args [Hash, Optional] :params Query string to include with the request
     # @option args [Integer, Optional] :read_timeout How long to wait for the socket to return data before timing out
     #
@@ -198,9 +199,9 @@ module RETS
       headers = headers ? @headers.merge(headers) : @headers
 
       if !@config[:http][:proxy]
-        http = ::Net::HTTP.new(args[:url].host, args[:url].port)
+        http = Net::HTTP.new(args[:url].host, args[:url].port)
       else
-        http = ::Net::HTTP.new(args[:url].host, args[:url].port, @config[:http][:proxy][:address], @config[:http][:proxy][:port], @config[:http][:proxy][:username], @config[:http][:proxy][:password])
+        http = Net::HTTP.new(args[:url].host, args[:url].port, @config[:http][:proxy][:address], @config[:http][:proxy][:port], @config[:http][:proxy][:username], @config[:http][:proxy][:password])
       end
 
       http.read_timeout = args[:read_timeout] if args[:read_timeout]
@@ -213,8 +214,12 @@ module RETS
         http.ca_path = @config[:http][:ca_path] if @config[:http][:ca_path]
       end
 
+      req_obj = args[:method].to_s.upcase == 'POST' ?
+        Net::HTTP::Post.new(request_uri, headers) :
+        Net::HTTP::Get.new(request_uri, headers)
+
       http.start do
-        http.request_get(request_uri, headers) do |response|
+        http.request(req_obj) do |response|
           # Pass along the cookies
           # Some servers will continually call Set-Cookie with the same value for every single request
           # to avoid authentication problems from cookies being stomped over (which is sad, nobody likes having their cookies crushed).
