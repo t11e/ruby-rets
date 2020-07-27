@@ -1,4 +1,5 @@
 require "net/https"
+require "socksify/http"
 require "digest"
 
 module RETS
@@ -198,10 +199,14 @@ module RETS
 
       headers = headers ? @headers.merge(headers) : @headers
 
-      if !@config[:http][:proxy]
-        http = Net::HTTP.new(args[:url].host, args[:url].port)
+      if (socks_proxy = @config[:http][:socks_proxy])
+        TCPSocket::socks_username = socks_proxy[:username]
+        TCPSocket::socks_password = socks_proxy[:password]
+        http = Net::HTTP.SOCKSProxy(socks_proxy[:address], socks_proxy[:port]).new(args[:url].host, args[:url].port)
+      elsif (proxy = @config[:http][:proxy])
+        http = Net::HTTP.new(args[:url].host, args[:url].port, proxy[:address], proxy[:port], proxy[:username], proxy[:password])
       else
-        http = Net::HTTP.new(args[:url].host, args[:url].port, @config[:http][:proxy][:address], @config[:http][:proxy][:port], @config[:http][:proxy][:username], @config[:http][:proxy][:password])
+        http = Net::HTTP.new(args[:url].host, args[:url].port)
       end
 
       http.read_timeout = args[:read_timeout] if args[:read_timeout]
@@ -217,6 +222,8 @@ module RETS
       req_obj = args[:method].to_s.upcase == 'POST' ?
         Net::HTTP::Post.new(request_uri, headers) :
         Net::HTTP::Get.new(request_uri, headers)
+      print req_obj.each_header.to_h
+      print "\n"
 
       http.start do
         http.request(req_obj) do |response|

@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project         = "ruby-rets"
 
   s.add_runtime_dependency "nokogiri", ">=1.5.0"
+  s.add_runtime_dependency "socksify", ">=1.7.1"
 
   s.add_development_dependency "rspec", "~>2.8.0"
   s.add_development_dependency "guard-rspec", "~>0.6.0"
